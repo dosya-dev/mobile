@@ -1,0 +1,116 @@
+# Every Settings destination via its own deep link, popping home between pages.
+appId: dev.dosya
+---
+- launchApp
+- retry:
+    maxRetries: 3
+    commands:
+      - openLink: dosya://
+      - extendedWaitUntil: { visible: "All", timeout: 20000 }
+- runFlow:
+    when:
+      notVisible: "${E2E_WS}"
+    commands:
+      - tapOn: "Owner"
+      - extendedWaitUntil: { visible: "Create workspace", timeout: 10000 }
+      - scrollUntilVisible: { element: "${E2E_WS}", direction: DOWN, timeout: 10000 }
+      - tapOn: "${E2E_WS}"
+      - extendedWaitUntil: { visible: "All", timeout: 25000 }
+- retry:
+    maxRetries: 2
+    commands:
+      - openLink: dosya://profile
+      - extendedWaitUntil: { visible: "Identity", timeout: 20000 }
+- openLink: dosya://
+- extendedWaitUntil: { visible: "All", timeout: 15000 }
+- retry:
+    maxRetries: 2
+    commands:
+      - openLink: dosya://workspaces
+      - extendedWaitUntil: { visible: "My workspaces", timeout: 20000 }
+- openLink: dosya://
+- extendedWaitUntil: { visible: "All", timeout: 15000 }
+- retry:
+    maxRetries: 2
+    commands:
+      - openLink: dosya://workspace-dashboard
+      - extendedWaitUntil: { visible: "Your storage", timeout: 35000 }
+- openLink: dosya://
+- extendedWaitUntil: { visible: "All", timeout: 15000 }
+- retry:
+    maxRetries: 2
+    commands:
+      - openLink: dosya://duplicates
+      - extendedWaitUntil: { visible: "Duplicates", timeout: 25000 }
+- openLink: dosya://
+- extendedWaitUntil: { visible: "All", timeout: 15000 }
+- retry:
+    maxRetries: 2
+    commands:
+      - openLink: dosya://file-requests
+      - extendedWaitUntil: { visible: "File requests", timeout: 20000 }
+- openLink: dosya://
+- extendedWaitUntil: { visible: "All", timeout: 15000 }
+- retry:
+    maxRetries: 2
+    commands:
+      - openLink: dosya://activity
+      - extendedWaitUntil: { visible: "Activity", timeout: 20000 }
+- openLink: dosya://
+- extendedWaitUntil: { visible: "All", timeout: 15000 }
+- retry:
+    maxRetries: 2
+    commands:
+      - openLink: dosya://groups
+      - extendedWaitUntil: { visible: "My groups", timeout: 20000 }
+- openLink: dosya://
+- extendedWaitUntil: { visible: "All", timeout: 15000 }
+- retry:
+    maxRetries: 2
+    commands:
+      - openLink: dosya://favourites
+      - extendedWaitUntil: { visible: "Favourites", timeout: 20000 }
+- openLink: dosya://
+- extendedWaitUntil: { visible: "All", timeout: 15000 }
+- retry:
+    maxRetries: 2
+    commands:
+      - openLink: dosya://trash
+      - extendedWaitUntil: { visible: "Trash", timeout: 20000 }
+- openLink: dosya://
+- extendedWaitUntil: { visible: "All", timeout: 15000 }
+- retry:
+    maxRetries: 2
+    commands:
+      - openLink: dosya://shares
+      - extendedWaitUntil: { visible: "My Shares", timeout: 20000 }
+- openLink: dosya://
+- extendedWaitUntil: { visible: "All", timeout: 15000 }
+- retry:
+    maxRetries: 2
+    commands:
+      - openLink: dosya://contacts
+      - extendedWaitUntil: { visible: "Contacts", timeout: 20000 }
+- openLink: dosya://
+- extendedWaitUntil: { visible: "All", timeout: 15000 }
+- retry:
+    maxRetries: 2
+    commands:
+      - openLink: dosya://sessions
+      - extendedWaitUntil: { visible: "Sessions", timeout: 20000 }
+- openLink: dosya://
+- extendedWaitUntil: { visible: "All", timeout: 15000 }
+- retry:
+    maxRetries: 2
+    commands:
+      - openLink: dosya://appearance
+      - extendedWaitUntil: { visible: "Appearance", timeout: 20000 }
+- openLink: dosya://
+- extendedWaitUntil: { visible: "All", timeout: 15000 }
+- retry:
+    maxRetries: 2
+    commands:
+      - openLink: dosya://notification-settings
+      - extendedWaitUntil: { visible: "Notification settings", timeout: 20000 }
+- openLink: dosya://
+- extendedWaitUntil: { visible: "All", timeout: 15000 }

@@ -1,0 +1,21 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'dev.dosya.shareintent'
+version = '1.0.0'
+
+android {
+  namespace "dev.dosya.shareintent"
+  defaultConfig {
+    versionCode 1
+    versionName '1.0.0'
+  }
+}
+
+// No extra dependencies: this reads the launch Intent and queries the
+// ContentResolver, both framework APIs. IntentCompat comes from
+// androidx.core:core-ktx, which expo-modules-core exposes with `api` (see its
+// android/build.gradle) rather than `implementation`, so it is on the compile
+// classpath here without being declared again.

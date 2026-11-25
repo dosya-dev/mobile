@@ -1,0 +1,29 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'dev.dosya.backupstatus'
+version = '0.1.0'
+
+android {
+  namespace "dev.dosya.backupstatus"
+  defaultConfig {
+    versionCode 1
+    versionName '0.1.0'
+  }
+  testOptions {
+    unitTests.returnDefaultValues = true
+  }
+}
+
+dependencies {
+  testImplementation 'junit:junit:4.13.2'
+  // Local JVM unit tests run against a stub android.jar where org.json.JSONObject
+  // methods return default values (null/0) instead of parsing anything. This is
+  // the real, standalone org.json reference implementation on the test classpath
+  // only, so JSONObject actually works under test - same fix expo-modules-core's
+  // own build.gradle applies for the same reason. Production code is unaffected:
+  // on-device, org.json.JSONObject resolves to the real Android framework class.
+  testImplementation 'org.json:json:20230227'
+}

@@ -1,0 +1,38 @@
+# EAS Build archive filter. EAS reads this file from the app directory but
+# the patterns are relative to the git root; the mobile app only needs
+# apps/mobile and packages/*. apps/help alone is 1.7 GB of tracked files.
+apps/help/
+apps/admin/
+apps/api/
+apps/web/
+apps/desktop/
+apps/blog/
+apps/cli/
+apps/tv/
+apps/extension/
+apps/marketing/
+apps/network/
+apps/wordpress/
+apps/zapier/
+apps/cron/
+apps/ftp-server/
+apps/lightroom/
+apps/mcp/
+apps/n8n/
+apps/onlyoffice/
+apps/rclone-worker/
+apps/status/
+public/
+docs/
+src/
+scripts/
+.worktrees/
+.superpowers/
+node_modules
+**/node_modules
+apps/mobile/node_modules
+packages/*/node_modules
+dist
+**/dist
+.wrangler
+**/.wrangler

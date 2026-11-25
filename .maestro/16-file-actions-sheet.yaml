@@ -1,0 +1,29 @@
+# Long-press a file card: actions sheet lists the file verbs. Read-only.
+appId: dev.dosya
+---
+- launchApp
+- retry:
+    maxRetries: 3
+    commands:
+      - openLink: dosya://
+      - extendedWaitUntil: { visible: "All", timeout: 20000 }
+- runFlow:
+    when:
+      notVisible: "${E2E_WS}"
+    commands:
+      - tapOn: "Owner"
+      - extendedWaitUntil: { visible: "Create workspace", timeout: 10000 }
+      - scrollUntilVisible: { element: "${E2E_WS}", direction: DOWN, timeout: 10000 }
+      - tapOn: "${E2E_WS}"
+      - extendedWaitUntil: { visible: "All", timeout: 25000 }
+- tapOn: "Images"
+- tapOn: "Grid view"
+- extendedWaitUntil: { visible: "IMG_2338.PNG", timeout: 20000 }
+- longPressOn: "IMG_2338.PNG"
+- extendedWaitUntil: { visible: "Version history", timeout: 10000 }
+- assertVisible: "Share"
+- assertVisible: "Comments"
+- back
+- tapOn: "List view"
+- tapOn: "All"
+- extendedWaitUntil: { visible: "TEST-24", timeout: 15000 }

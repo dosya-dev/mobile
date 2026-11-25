@@ -1,0 +1,19 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'dev.dosya.backupservice'
+version = '1.0.0'
+
+android {
+  namespace "dev.dosya.backupservice"
+  defaultConfig {
+    versionCode 1
+    versionName '1.0.0'
+  }
+}
+
+// No extra dependencies: the service uses framework APIs only
+// (android.app.Service / Notification.Builder), and expo-module-gradle-plugin
+// supplies Kotlin plus the expo-modules-core dependency.

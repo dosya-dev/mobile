@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <style>
+      html, body { margin: 0; padding: 0; height: 100%; background: #e7ebef; }
+      #map { position: absolute; inset: 0; }
+      /* Pins and clusters are drawn into the WebGL canvas, not the DOM - there
+         is deliberately no marker CSS here. Text selection and the tap
+         highlight are off because neither means anything on a map, and both
+         fire during a drag. */
+      body { -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <!--INJECT:BUNDLE-->
+  </body>
+</html>

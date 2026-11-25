@@ -1,0 +1,9 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <!-- Deliberately empty. The intent filters that put dosya.dev in the "Open
+       with" chooser and the share sheet belong to MainActivity, not to this
+       library, and they are declared in app.config.ts (android.intentFilters)
+       so prebuild writes them into the app manifest. Declaring them here would
+       attach them to a library with no activity and do nothing. -->
+
+</manifest>

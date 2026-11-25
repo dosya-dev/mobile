@@ -1,0 +1,39 @@
+# The three backup sub-screens: device folders, failed items, free-up-space.
+appId: dev.dosya
+---
+- launchApp
+- retry:
+    maxRetries: 3
+    commands:
+      - openLink: dosya://
+      - extendedWaitUntil: { visible: "All", timeout: 20000 }
+- runFlow:
+    when:
+      notVisible: "${E2E_WS}"
+    commands:
+      - tapOn: "Owner"
+      - extendedWaitUntil: { visible: "Create workspace", timeout: 10000 }
+      - scrollUntilVisible: { element: "${E2E_WS}", direction: DOWN, timeout: 10000 }
+      - tapOn: "${E2E_WS}"
+      - extendedWaitUntil: { visible: "All", timeout: 25000 }
+- retry:
+    maxRetries: 2
+    commands:
+      - openLink: dosya://backup-folders
+      - extendedWaitUntil: { visible: "Device folders", timeout: 20000 }
+- openLink: dosya://
+- extendedWaitUntil: { visible: "All", timeout: 15000 }
+- retry:
+    maxRetries: 2
+    commands:
+      - openLink: dosya://backup-failed
+      - extendedWaitUntil: { visible: "Failed items", timeout: 20000 }
+- openLink: dosya://
+- extendedWaitUntil: { visible: "All", timeout: 15000 }
+- retry:
+    maxRetries: 2
+    commands:
+      - openLink: dosya://backup-free-space
+      - extendedWaitUntil: { visible: "Free up space", timeout: 20000 }
+- openLink: dosya://
+- extendedWaitUntil: { visible: "All", timeout: 15000 }

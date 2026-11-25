@@ -1,0 +1,32 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'dev.dosya.filesprovider'
+version = '0.1.0'
+
+android {
+  namespace "dev.dosya.filesprovider"
+  defaultConfig {
+    versionCode 1
+    versionName '0.1.0'
+  }
+  testOptions {
+    unitTests.returnDefaultValues = true
+  }
+}
+
+dependencies {
+  // React Native already ships this exact OkHttp on the app classpath (see
+  // node_modules/react-native/gradle/libs.versions.toml); declaring it here
+  // makes the module compile on its own and resolves to the same version.
+  implementation 'com.squareup.okhttp3:okhttp:4.9.2'
+
+  testImplementation 'junit:junit:4.13.2'
+  testImplementation 'com.squareup.okhttp3:mockwebserver:4.9.2'
+  // JVM unit tests run against a stub android.jar where org.json returns
+  // defaults instead of parsing; this is the real org.json on the test
+  // classpath only, the same fix modules/dosya-backup-status applies.
+  testImplementation 'org.json:json:20230227'
+}

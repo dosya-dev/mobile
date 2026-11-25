@@ -1,0 +1,29 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'dev.dosya.personasbg'
+version = '1.0.0'
+
+android {
+  namespace "dev.dosya.personasbg"
+  defaultConfig {
+    versionCode 1
+    versionName '1.0.0'
+  }
+}
+
+dependencies {
+  // PersonasHeadlessService extends React Native's HeadlessJsTaskService.
+  // No version: the React Native Gradle plugin pins react-android for every
+  // project in the build.
+  implementation 'com.facebook.react:react-android'
+  // Same version as expo-background-task, so the app resolves one WorkManager.
+  implementation 'androidx.work:work-runtime-ktx:2.9.1'
+  // ProcessLifecycleOwner: the service window opens when the app leaves the
+  // foreground (ON_STOP), and the worker skips runs while the app is in front.
+  implementation 'androidx.lifecycle:lifecycle-process:2.6.2'
+  // NotificationCompat / NotificationManagerCompat / ContextCompat.
+  implementation 'androidx.core:core-ktx:1.13.1'
+}

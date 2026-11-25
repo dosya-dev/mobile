@@ -1,0 +1,5 @@
+<resources>
+  <string name="widget_name">dosya backup</string>
+  <string name="widget_description">Backup status and storage for your dosya workspace.</string>
+  <string name="widget_empty">Open dosya to see your backup</string>
+</resources>

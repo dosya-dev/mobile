@@ -1,0 +1,68 @@
+# Personal Vault flow: setup or unlock, create a Space, lock.
+appId: dev.dosya
+---
+- launchApp
+# Signed-in preamble: Files root with all workspaces.
+- retry:
+    maxRetries: 3
+    commands:
+      - openLink: dosya://
+      - extendedWaitUntil: { visible: "All", timeout: 20000 }
+- runFlow:
+    when:
+      notVisible: "${E2E_WS}"
+    commands:
+      - tapOn: "Owner"
+      - extendedWaitUntil: { visible: "Create workspace", timeout: 10000 }
+      - scrollUntilVisible: { element: "${E2E_WS}", direction: DOWN, timeout: 10000 }
+      - tapOn: "${E2E_WS}"
+      - extendedWaitUntil: { visible: "All", timeout: 25000 }
+# The Vault has its own tab in the bottom bar. Its label is the surest target:
+# the icon is a padlock that changes with the lock state.
+- tapOn: "Vault"
+# Wait for the identity check to finish BEFORE branching. "Vault" was satisfied
+# the instant it was typed - by the Files-root row's own label - so both `when:`
+# clauses below were evaluated once each, against the still-spinning gate, and
+# neither ran. The spinner going is the check finishing; the regex then says
+# which of the three gates landed (a Maestro text selector is a full-match
+# regex, so this is the alternation of all three).
+- extendedWaitUntil: { notVisible: { id: "vault-checking" }, timeout: 30000 }
+- extendedWaitUntil: { visible: "Create Vault|Unlock|My Spaces", timeout: 30000 }
+# Setup path: tap "Create Vault" if visible, type passphrase, confirm, submit,
+# dismiss the recovery card.
+- runFlow:
+    when: { visible: "Create Vault" }
+    commands:
+      - tapOn: { id: "vault-setup-pass" }
+      - inputText: "${E2E_VAULT_PASS}"
+      - tapOn: { id: "vault-setup-confirm" }
+      - inputText: "${E2E_VAULT_PASS}"
+      - tapOn: { id: "vault-setup-submit" }
+      - extendedWaitUntil: { visible: "Save your recovery key", timeout: 30000 }
+      - tapOn: { id: "vault-recovery-dismiss" }
+# Unlock path: tap "Unlock" if visible, type passphrase, submit.
+- runFlow:
+    when: { visible: "Unlock" }
+    commands:
+      - tapOn: { id: "vault-unlock-pass" }
+      - inputText: "${E2E_VAULT_PASS}"
+      - tapOn: { id: "vault-unlock-submit" }
+      - extendedWaitUntil: { visible: "My Spaces", timeout: 30000 }
+# Wait for "My Spaces" section to be visible (already waited in unlock path,
+# but assert again in case we took the setup path).
+- extendedWaitUntil: { visible: "My Spaces", timeout: 30000 }
+# Create a new Space named "Maestro".
+- tapOn: { id: "vault-new-space" }
+- extendedWaitUntil: { visible: "New Space", timeout: 10000 }
+- inputText: "Maestro"
+- tapOn: "Create"
+# Wait for the empty Space text. A Maestro text selector is a FULL-match
+# regex, so the bare sentence start never matched the row's actual text
+# ("This Space is empty. Add photos or files with the + button.").
+- extendedWaitUntil: { visible: ".*This Space is empty.*", timeout: 30000 }
+# Go back to the Vault screen.
+- back
+# Lock the Vault.
+- tapOn: { id: "vault-lock" }
+# Assert that the Unlock button is now visible (Vault is locked).
+- assertVisible: "Unlock"

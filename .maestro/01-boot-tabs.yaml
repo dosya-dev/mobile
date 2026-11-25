@@ -1,0 +1,29 @@
+# Boot to the signed-in shell, then prove all three tabs render their surface.
+appId: dev.dosya
+---
+- launchApp
+- retry:
+    maxRetries: 3
+    commands:
+      - openLink: dosya://
+      - extendedWaitUntil: { visible: "All", timeout: 20000 }
+- runFlow:
+    when:
+      notVisible: "${E2E_WS}"
+    commands:
+      - tapOn: "Owner"
+      - extendedWaitUntil: { visible: "Create workspace", timeout: 10000 }
+      - scrollUntilVisible: { element: "${E2E_WS}", direction: DOWN, timeout: 10000 }
+      - tapOn: "${E2E_WS}"
+      - extendedWaitUntil: { visible: "All", timeout: 25000 }
+- assertVisible: "Files"
+- assertVisible: "Backup"
+- assertVisible: "Settings"
+- tapOn: "Backup"
+- extendedWaitUntil:
+    visible: ".*(Ready|Backing up|Paused|Protected|Start backup|Continue backup).*"
+    timeout: 20000
+- tapOn: "Settings"
+- extendedWaitUntil: { visible: "My workspaces", timeout: 15000 }
+- tapOn: "Files"
+- extendedWaitUntil: { visible: "All", timeout: 15000 }

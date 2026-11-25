@@ -1,0 +1,6 @@
+{
+  "name": "@dosya-dev/e2ee-core",
+  "private": true,
+  "main": "index.js",
+  "types": "index.d.ts"
+}

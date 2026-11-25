@@ -1,0 +1,22 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'dev.dosya.docscanner'
+version = '1.0.0'
+
+android {
+  namespace "dev.dosya.docscanner"
+  defaultConfig {
+    versionCode 1
+    versionName '1.0.0'
+  }
+}
+
+dependencies {
+  // The scanner UI lives inside Google Play services and is downloaded on
+  // first use, so this adds almost nothing to the APK. It also brings
+  // play-services-base, which the availability check uses.
+  implementation 'com.google.android.gms:play-services-mlkit-document-scanner:16.0.0'
+}

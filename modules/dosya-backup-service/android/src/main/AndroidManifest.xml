@@ -1,0 +1,19 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <!-- A backup is a long data transfer the user explicitly asked for, so it
+       runs as a dataSync foreground service. Without this Android stops the
+       upload shortly after the screen locks. -->
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+  <!-- Android 13+. If the user denies it the service still runs; they just do
+       not see progress. -->
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+  <application>
+    <service
+      android:name=".BackupForegroundService"
+      android:foregroundServiceType="dataSync"
+      android:exported="false" />
+  </application>
+
+</manifest>

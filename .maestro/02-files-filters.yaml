@@ -1,0 +1,40 @@
+# Every filter chip settles into a live listing. The chips row scrolls; the far chips need a swipe.
+appId: dev.dosya
+---
+- launchApp
+- retry:
+    maxRetries: 3
+    commands:
+      - openLink: dosya://
+      - extendedWaitUntil: { visible: "All", timeout: 20000 }
+- runFlow:
+    when:
+      notVisible: "${E2E_WS}"
+    commands:
+      - tapOn: "Owner"
+      - extendedWaitUntil: { visible: "Create workspace", timeout: 10000 }
+      - scrollUntilVisible: { element: "${E2E_WS}", direction: DOWN, timeout: 10000 }
+      - tapOn: "${E2E_WS}"
+      - extendedWaitUntil: { visible: "All", timeout: 25000 }
+- tapOn: "Docs"
+- extendedWaitUntil: { visible: ".*(items|folder|empty|\\.pdf|\\.docx).*", timeout: 15000 }
+- tapOn: "Images"
+- extendedWaitUntil: { visible: ".*(items|folder|empty|\\.png|\\.jpg|\\.PNG).*", timeout: 15000 }
+- swipe:
+    start: "50%, 12%"
+    end: "12%, 12%"
+    duration: 400
+- tapOn: "Videos"
+- extendedWaitUntil: { visible: ".*(items|folder|empty|\\.mp4|\\.mov).*", timeout: 15000 }
+- swipe:
+    start: "50%, 12%"
+    end: "12%, 12%"
+    duration: 400
+- tapOn: "Hidden"
+- extendedWaitUntil: { visible: ".*(items|folder|empty|hidden).*", timeout: 15000 }
+- swipe:
+    start: "20%, 12%"
+    end: "75%, 12%"
+    duration: 400
+- tapOn: "All"
+- extendedWaitUntil: { visible: "TEST-24", timeout: 15000 }

@@ -1,0 +1,20 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <application>
+    <!-- dosya.dev in the system file picker (Storage Access Framework) and in
+         file managers that browse providers. exported=true is required for the
+         DocumentsUI framework, which runs as another package, to bind to it.
+         MANAGE_DOCUMENTS is a signature permission only the system holds, so
+         no third-party app can call the provider directly: they go through the
+         picker, which hands out per-document grants. -->
+    <provider
+        android:name="dev.dosya.filesprovider.DosyaDocumentsProvider"
+        android:authorities="dev.dosya.documents"
+        android:exported="true"
+        android:grantUriPermissions="true"
+        android:permission="android.permission.MANAGE_DOCUMENTS">
+      <intent-filter>
+        <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
+      </intent-filter>
+    </provider>
+  </application>
+</manifest>

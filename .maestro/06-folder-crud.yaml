@@ -1,0 +1,59 @@
+# Create -> verify -> delete, self-cleaning, grid view. Pre-cleans leaks from aborted runs.
+appId: dev.dosya
+---
+- launchApp
+- retry:
+    maxRetries: 3
+    commands:
+      - openLink: dosya://
+      - extendedWaitUntil: { visible: "All", timeout: 20000 }
+- runFlow:
+    when:
+      notVisible: "${E2E_WS}"
+    commands:
+      - tapOn: "Owner"
+      - extendedWaitUntil: { visible: "Create workspace", timeout: 10000 }
+      - scrollUntilVisible: { element: "${E2E_WS}", direction: DOWN, timeout: 10000 }
+      - tapOn: "${E2E_WS}"
+      - extendedWaitUntil: { visible: "All", timeout: 25000 }
+- tapOn: "Grid view"
+- runFlow:
+    when:
+      visible: "maestro-e2e"
+    commands:
+      - longPressOn: "maestro-e2e"
+      - extendedWaitUntil: { visible: "Rename", timeout: 10000 }
+      - swipe:
+          start: "50%, 80%"
+          end: "50%, 50%"
+          duration: 400
+      - tapOn: "Delete"
+      - extendedWaitUntil: { visible: "Delete folder?", timeout: 10000 }
+      - tapOn: "Delete"
+      - extendedWaitUntil:
+          notVisible: "maestro-e2e"
+          timeout: 20000
+- tapOn: "New folder"
+- extendedWaitUntil: { visible: "Create new folder", timeout: 10000 }
+- tapOn: "e.g. Brand Assets or Projects/Q2/Designs"
+- inputText: "maestro-e2e"
+- hideKeyboard
+- tapOn: "Create"
+- extendedWaitUntil:
+    notVisible: "Create new folder"
+    timeout: 15000
+- extendedWaitUntil: { visible: "maestro-e2e", timeout: 20000 }
+- longPressOn: "maestro-e2e"
+- extendedWaitUntil: { visible: "Rename", timeout: 10000 }
+- swipe:
+    start: "50%, 80%"
+    end: "50%, 50%"
+    duration: 400
+- tapOn: "Delete"
+- extendedWaitUntil: { visible: "Delete folder?", timeout: 10000 }
+- tapOn: "Delete"
+- extendedWaitUntil:
+    notVisible: "maestro-e2e"
+    timeout: 20000
+- tapOn: "List view"
+- extendedWaitUntil: { visible: "TEST-24", timeout: 15000 }

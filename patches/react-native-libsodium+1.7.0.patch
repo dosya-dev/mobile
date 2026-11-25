@@ -1,0 +1,241 @@
+diff --git a/node_modules/react-native-libsodium/cpp/react-native-libsodium.cpp b/node_modules/react-native-libsodium/cpp/react-native-libsodium.cpp
+index a97e74b..58493b8 100644
+--- a/node_modules/react-native-libsodium/cpp/react-native-libsodium.cpp
++++ b/node_modules/react-native-libsodium/cpp/react-native-libsodium.cpp
+@@ -1295,7 +1295,7 @@ namespace ReactNativeLibsodium
+ 
+                 std::string additionalDataArgumentName = "additionalData";
+                 unsigned int additionalDataArgumentPosition = 1;
+-                validateIsString(functionName, runtime, arguments[additionalDataArgumentPosition], additionalDataArgumentName, true);
++                JsiArgType additionalDataArgType = validateIsStringOrArrayBuffer(functionName, runtime, arguments[additionalDataArgumentPosition], additionalDataArgumentName, true);
+ 
+                 std::string publicNonceArgumentName = "public_nonce";
+                 unsigned int publicNonceArgumentPosition = 2;
+@@ -1305,7 +1305,19 @@ namespace ReactNativeLibsodium
+                 unsigned int keyArgumentPosition = 3;
+                 validateIsArrayBuffer(functionName, runtime, arguments[keyArgumentPosition], keyArgumentName, true);
+ 
+-                std::string additionalData = arguments[additionalDataArgumentPosition].asString(runtime).utf8(runtime);
++                // dosya patch: associated data as raw bytes when given an ArrayBuffer.
++                std::vector<uint8_t> additionalData;
++                if (additionalDataArgType == JsiArgType::string)
++                {
++                    std::string additionalDataString = arguments[additionalDataArgumentPosition].asString(runtime).utf8(runtime);
++                    additionalData.assign(additionalDataString.begin(), additionalDataString.end());
++                }
++                else
++                {
++                    auto additionalDataArrayBuffer = arguments[additionalDataArgumentPosition].asObject(runtime).getArrayBuffer(runtime);
++                    const uint8_t *adData = additionalDataArrayBuffer.data(runtime);
++                    additionalData.assign(adData, adData + additionalDataArrayBuffer.length(runtime));
++                }
+                 auto publicNonceArrayBuffer =
+                     arguments[publicNonceArgumentPosition].asObject(runtime).getArrayBuffer(runtime);
+                 auto keyArrayBuffer =
+@@ -1334,7 +1346,7 @@ namespace ReactNativeLibsodium
+                         reinterpret_cast<const unsigned char *>(messageString.data()),
+                         messageString.length(),
+                         reinterpret_cast<const unsigned char *>(additionalData.data()),
+-                        additionalData.length(),
++                        additionalData.size(),
+                         NULL,
+                         publicNonceArrayBuffer.data(runtime),
+                         keyArrayBuffer.data(runtime));
+@@ -1351,7 +1363,7 @@ namespace ReactNativeLibsodium
+                         messageArrayBuffer.data(runtime),
+                         messageArrayBuffer.length(runtime),
+                         reinterpret_cast<const unsigned char *>(additionalData.data()),
+-                        additionalData.length(),
++                        additionalData.size(),
+                         NULL,
+                         publicNonceArrayBuffer.data(runtime),
+                         keyArrayBuffer.data(runtime));
+@@ -1377,7 +1389,7 @@ namespace ReactNativeLibsodium
+ 
+                 std::string additionalDataArgumentName = "additionalData";
+                 unsigned int additionalDataArgumentPosition = 1;
+-                validateIsString(functionName, runtime, arguments[additionalDataArgumentPosition], additionalDataArgumentName, true);
++                JsiArgType additionalDataArgType = validateIsStringOrArrayBuffer(functionName, runtime, arguments[additionalDataArgumentPosition], additionalDataArgumentName, true);
+ 
+                 std::string publicNonceArgumentName = "public_nonce";
+                 unsigned int publicNonceArgumentPosition = 2;
+@@ -1387,7 +1399,19 @@ namespace ReactNativeLibsodium
+                 unsigned int keyArgumentPosition = 3;
+                 validateIsArrayBuffer(functionName, runtime, arguments[keyArgumentPosition], keyArgumentName, true);
+ 
+-                std::string additionalData = arguments[additionalDataArgumentPosition].asString(runtime).utf8(runtime);
++                // dosya patch: associated data as raw bytes when given an ArrayBuffer.
++                std::vector<uint8_t> additionalData;
++                if (additionalDataArgType == JsiArgType::string)
++                {
++                    std::string additionalDataString = arguments[additionalDataArgumentPosition].asString(runtime).utf8(runtime);
++                    additionalData.assign(additionalDataString.begin(), additionalDataString.end());
++                }
++                else
++                {
++                    auto additionalDataArrayBuffer = arguments[additionalDataArgumentPosition].asObject(runtime).getArrayBuffer(runtime);
++                    const uint8_t *adData = additionalDataArrayBuffer.data(runtime);
++                    additionalData.assign(adData, adData + additionalDataArrayBuffer.length(runtime));
++                }
+                 auto publicNonceArrayBuffer =
+                     arguments[publicNonceArgumentPosition].asObject(runtime).getArrayBuffer(runtime);
+                 auto keyArrayBuffer =
+@@ -1417,7 +1441,7 @@ namespace ReactNativeLibsodium
+                         reinterpret_cast<const unsigned char *>(ciphertextString.data()),
+                         ciphertextString.length(),
+                         reinterpret_cast<const unsigned char *>(additionalData.data()),
+-                        additionalData.length(),
++                        additionalData.size(),
+                         publicNonceArrayBuffer.data(runtime),
+                         keyArrayBuffer.data(runtime));
+                 }
+@@ -1434,7 +1458,7 @@ namespace ReactNativeLibsodium
+                         ciphertextArrayBuffer.data(runtime),
+                         ciphertextArrayBuffer.length(runtime),
+                         reinterpret_cast<const unsigned char *>(additionalData.data()),
+-                        additionalData.length(),
++                        additionalData.size(),
+                         publicNonceArrayBuffer.data(runtime),
+                         keyArrayBuffer.data(runtime));
+                 }
+diff --git a/node_modules/react-native-libsodium/lib/commonjs/lib.native.js b/node_modules/react-native-libsodium/lib/commonjs/lib.native.js
+index 2616cac..4b68522 100644
+--- a/node_modules/react-native-libsodium/lib/commonjs/lib.native.js
++++ b/node_modules/react-native-libsodium/lib/commonjs/lib.native.js
+@@ -254,10 +254,9 @@ function crypto_kdf_derive_from_key(subkey_len, subkey_id, ctx, key, outputForma
+ function crypto_aead_xchacha20poly1305_ietf_encrypt(message, additional_data, _secret_nonce, public_nonce, key, outputFormat) {
+   let result;
+   const messageParam = typeof message === 'string' ? message : toArrayBuffer(message);
+-  if (typeof additional_data !== 'string') {
+-    throw new Error('crypto_aead_xchacha20poly1305_ietf_encrypt: input type not yet implemented');
+-  }
+-  result = global.jsi_crypto_aead_xchacha20poly1305_ietf_encrypt(messageParam, additional_data, toArrayBuffer(public_nonce), toArrayBuffer(key));
++  // dosya patch: associated data may be bytes (e2ee-core passes binary AD).
++  const additionalDataParam = typeof additional_data === 'string' ? additional_data : additional_data == null ? '' : toArrayBuffer(additional_data);
++  result = global.jsi_crypto_aead_xchacha20poly1305_ietf_encrypt(messageParam, additionalDataParam, toArrayBuffer(public_nonce), toArrayBuffer(key));
+   return (0, _utils.convertToOutputFormat)(result, outputFormat);
+ }
+ function crypto_aead_xchacha20poly1305_ietf_decrypt(_secret_nonce, ciphertext, additional_data, public_nonce, key, outputFormat) {
+@@ -265,11 +264,10 @@ function crypto_aead_xchacha20poly1305_ietf_decrypt(_secret_nonce, ciphertext, a
+   if (typeof ciphertext === 'string') {
+     throw new Error('crypto_aead_xchacha20poly1305_ietf_decrypt: input type not yet implemented');
+   }
+-  if (typeof additional_data !== 'string') {
+-    throw new Error('crypto_aead_xchacha20poly1305_ietf_decrypt: input type not yet implemented');
+-  }
++  // dosya patch: associated data may be bytes (e2ee-core passes binary AD).
++  const additionalDataParam = typeof additional_data === 'string' ? additional_data : additional_data == null ? '' : toArrayBuffer(additional_data);
+   const ciphertextParam = typeof ciphertext === 'string' ? ciphertext : toArrayBuffer(ciphertext);
+-  result = global.jsi_crypto_aead_xchacha20poly1305_ietf_decrypt(ciphertextParam, additional_data, toArrayBuffer(public_nonce), toArrayBuffer(key));
++  result = global.jsi_crypto_aead_xchacha20poly1305_ietf_decrypt(ciphertextParam, additionalDataParam, toArrayBuffer(public_nonce), toArrayBuffer(key));
+   return (0, _utils.convertToOutputFormat)(result, outputFormat);
+ }
+ function _unstable_crypto_kdf_hkdf_sha256_extract(key, salt) {
+diff --git a/node_modules/react-native-libsodium/lib/module/lib.native.js b/node_modules/react-native-libsodium/lib/module/lib.native.js
+index 94afc7c..9fadb8f 100644
+--- a/node_modules/react-native-libsodium/lib/module/lib.native.js
++++ b/node_modules/react-native-libsodium/lib/module/lib.native.js
+@@ -200,10 +200,9 @@ export function crypto_kdf_derive_from_key(subkey_len, subkey_id, ctx, key, outp
+ export function crypto_aead_xchacha20poly1305_ietf_encrypt(message, additional_data, _secret_nonce, public_nonce, key, outputFormat) {
+   let result;
+   const messageParam = typeof message === 'string' ? message : toArrayBuffer(message);
+-  if (typeof additional_data !== 'string') {
+-    throw new Error('crypto_aead_xchacha20poly1305_ietf_encrypt: input type not yet implemented');
+-  }
+-  result = global.jsi_crypto_aead_xchacha20poly1305_ietf_encrypt(messageParam, additional_data, toArrayBuffer(public_nonce), toArrayBuffer(key));
++  // dosya patch: associated data may be bytes (e2ee-core passes binary AD).
++  const additionalDataParam = typeof additional_data === 'string' ? additional_data : additional_data == null ? '' : toArrayBuffer(additional_data);
++  result = global.jsi_crypto_aead_xchacha20poly1305_ietf_encrypt(messageParam, additionalDataParam, toArrayBuffer(public_nonce), toArrayBuffer(key));
+   return convertToOutputFormat(result, outputFormat);
+ }
+ export function crypto_aead_xchacha20poly1305_ietf_decrypt(_secret_nonce, ciphertext, additional_data, public_nonce, key, outputFormat) {
+@@ -211,11 +210,10 @@ export function crypto_aead_xchacha20poly1305_ietf_decrypt(_secret_nonce, cipher
+   if (typeof ciphertext === 'string') {
+     throw new Error('crypto_aead_xchacha20poly1305_ietf_decrypt: input type not yet implemented');
+   }
+-  if (typeof additional_data !== 'string') {
+-    throw new Error('crypto_aead_xchacha20poly1305_ietf_decrypt: input type not yet implemented');
+-  }
++  // dosya patch: associated data may be bytes (e2ee-core passes binary AD).
++  const additionalDataParam = typeof additional_data === 'string' ? additional_data : additional_data == null ? '' : toArrayBuffer(additional_data);
+   const ciphertextParam = typeof ciphertext === 'string' ? ciphertext : toArrayBuffer(ciphertext);
+-  result = global.jsi_crypto_aead_xchacha20poly1305_ietf_decrypt(ciphertextParam, additional_data, toArrayBuffer(public_nonce), toArrayBuffer(key));
++  result = global.jsi_crypto_aead_xchacha20poly1305_ietf_decrypt(ciphertextParam, additionalDataParam, toArrayBuffer(public_nonce), toArrayBuffer(key));
+   return convertToOutputFormat(result, outputFormat);
+ }
+ export function _unstable_crypto_kdf_hkdf_sha256_extract(key, salt) {
+diff --git a/node_modules/react-native-libsodium/src/lib.native.ts b/node_modules/react-native-libsodium/src/lib.native.ts
+index bfa7ea8..4bd3247 100644
+--- a/node_modules/react-native-libsodium/src/lib.native.ts
++++ b/node_modules/react-native-libsodium/src/lib.native.ts
+@@ -168,19 +168,19 @@ declare global {
+   ): ArrayBuffer;
+   function jsi_crypto_aead_xchacha20poly1305_ietf_encrypt(
+     message: string | ArrayBuffer,
+-    additionalData: string,
++    additionalData: string | ArrayBuffer,
+     public_nonce: ArrayBuffer,
+     key: ArrayBuffer
+   ): ArrayBuffer;
+   function jsi_crypto_aead_xchacha20poly1305_ietf_decrypt(
+     ciphertext: string | ArrayBuffer,
+-    additionalData: string,
++    additionalData: string | ArrayBuffer,
+     public_nonce: ArrayBuffer,
+     key: ArrayBuffer
+   ): ArrayBuffer;
+   function jsi_crypto_aead_xchacha20poly1305_ietf_decrypt(
+     ciphertext: string | ArrayBuffer,
+-    additionalData: string,
++    additionalData: string | ArrayBuffer,
+     public_nonce: ArrayBuffer,
+     key: ArrayBuffer
+   ): ArrayBuffer;
+@@ -786,14 +786,16 @@ export function crypto_aead_xchacha20poly1305_ietf_encrypt(
+   let result: ArrayBuffer;
+   const messageParam =
+     typeof message === 'string' ? message : toArrayBuffer(message);
+-  if (typeof additional_data !== 'string') {
+-    throw new Error(
+-      'crypto_aead_xchacha20poly1305_ietf_encrypt: input type not yet implemented'
+-    );
+-  }
++  // dosya patch: associated data may be bytes (e2ee-core passes binary AD).
++  const additionalDataParam =
++    typeof additional_data === 'string'
++      ? additional_data
++      : additional_data == null
++        ? ''
++        : toArrayBuffer(additional_data);
+   result = global.jsi_crypto_aead_xchacha20poly1305_ietf_encrypt(
+     messageParam,
+-    additional_data,
++    additionalDataParam,
+     toArrayBuffer(public_nonce),
+     toArrayBuffer(key)
+   );
+@@ -830,16 +832,18 @@ export function crypto_aead_xchacha20poly1305_ietf_decrypt(
+       'crypto_aead_xchacha20poly1305_ietf_decrypt: input type not yet implemented'
+     );
+   }
+-  if (typeof additional_data !== 'string') {
+-    throw new Error(
+-      'crypto_aead_xchacha20poly1305_ietf_decrypt: input type not yet implemented'
+-    );
+-  }
++  // dosya patch: associated data may be bytes (e2ee-core passes binary AD).
++  const additionalDataParam =
++    typeof additional_data === 'string'
++      ? additional_data
++      : additional_data == null
++        ? ''
++        : toArrayBuffer(additional_data);
+   const ciphertextParam =
+     typeof ciphertext === 'string' ? ciphertext : toArrayBuffer(ciphertext);
+   result = global.jsi_crypto_aead_xchacha20poly1305_ietf_decrypt(
+     ciphertextParam,
+-    additional_data,
++    additionalDataParam,
+     toArrayBuffer(public_nonce),
+     toArrayBuffer(key)
+   );

@@ -1,0 +1,6 @@
+{
+  "name": "@dosya-dev/personas-engine",
+  "private": true,
+  "main": "index.js",
+  "types": "index.d.ts"
+}

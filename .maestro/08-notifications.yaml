@@ -1,0 +1,23 @@
+# The header bell opens the notifications screen and comes back.
+appId: dev.dosya
+---
+- launchApp
+- retry:
+    maxRetries: 3
+    commands:
+      - openLink: dosya://
+      - extendedWaitUntil: { visible: "All", timeout: 20000 }
+- runFlow:
+    when:
+      notVisible: "${E2E_WS}"
+    commands:
+      - tapOn: "Owner"
+      - extendedWaitUntil: { visible: "Create workspace", timeout: 10000 }
+      - scrollUntilVisible: { element: "${E2E_WS}", direction: DOWN, timeout: 10000 }
+      - tapOn: "${E2E_WS}"
+      - extendedWaitUntil: { visible: "All", timeout: 25000 }
+- tapOn: "Notifications.*"
+- extendedWaitUntil: { visible: "Notifications", timeout: 15000 }
+- back
+- openLink: dosya://
+- extendedWaitUntil: { visible: "All", timeout: 15000 }

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+  <ImageView android:id="@+id/card"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:scaleType="fitXY"
+      android:contentDescription="@null"
+      android:src="@drawable/widget_card" />
+
+  <LinearLayout android:id="@+id/content"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:orientation="vertical"
+      android:gravity="center_horizontal"
+      android:padding="12dp"
+      android:visibility="gone">
+
+    <TextView android:id="@+id/header"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="9sp"
+        android:textStyle="bold"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:text="dosya.dev" />
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="4dp">
+      <ImageView android:id="@+id/ring"
+          android:layout_width="64dp"
+          android:layout_height="64dp"
+          android:contentDescription="@null" />
+      <LinearLayout
+          android:layout_width="64dp"
+          android:layout_height="64dp"
+          android:orientation="vertical"
+          android:gravity="center">
+        <TextView android:id="@+id/ring_pct"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end" />
+        <TextView android:id="@+id/ring_sub"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="7sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:text="used" />
+      </LinearLayout>
+    </FrameLayout>
+
+    <TextView android:id="@+id/status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="9sp"
+        android:textStyle="bold"
+        android:maxLines="1" />
+
+    <TextView android:id="@+id/last_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="9sp"
+        android:maxLines="1" />
+  </LinearLayout>
+
+  <TextView android:id="@+id/placeholder"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:gravity="center"
+      android:padding="12dp"
+      android:textSize="11sp"
+      android:textColor="#09131a"
+      android:visibility="visible"
+      android:text="@string/widget_empty" />
+</FrameLayout>

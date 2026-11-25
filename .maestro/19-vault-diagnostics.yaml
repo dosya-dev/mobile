@@ -1,0 +1,23 @@
+# Vault phase-2 device gate: the native crypto backend passes e2ee-core's
+# self-test and the native chunker reproduces the frozen vectors on this
+# device. Needs no session - reachable on a signed-out, freshly-installed
+# phone (see the redirect-effect exemption in app/_layout.tsx).
+appId: dev.dosya
+---
+- launchApp
+# Cold start races the deep link: retry until the diagnostics header is on screen.
+- retry:
+    maxRetries: 3
+    commands:
+      - openLink: dosya://vault-diagnostics
+      # iOS asks 'Open in "dosya.dev"?' for a custom-scheme link fired from outside the app.
+      - runFlow:
+          when: { visible: "Open" }
+          commands:
+            - tapOn: "Open"
+      - extendedWaitUntil: { visible: "Vault diagnostics", timeout: 20000 }
+# Generating 10 MiB of vector bytes in JS plus Argon2id takes a while on a budget phone.
+- extendedWaitUntil: { visible: "Self-test: PASS", timeout: 180000 }
+- assertVisible: "Chunker: PASS"
+- assertVisible: "Binary AD: PASS"
+- assertVisible: "Backend: react-native-libsodium"

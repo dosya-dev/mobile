@@ -1,0 +1,21 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <application>
+    <!-- exported=true is required: the launcher resolves APPWIDGET_UPDATE receivers
+         across packages to populate its widget picker, and it runs as a different
+         package/UID. With exported=false the widget silently never appears, which
+         looks identical to the feature not being built. The only exposure is that
+         another app can trigger a re-render from already-stored data - no data
+         leaves the device and nothing is injected. -->
+    <receiver
+        android:name="dev.dosya.backupstatus.BackupWidgetProvider"
+        android:exported="true"
+        android:label="@string/widget_name">
+      <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+      </intent-filter>
+      <meta-data
+          android:name="android.appwidget.provider"
+          android:resource="@xml/backup_widget_info" />
+    </receiver>
+  </application>
+</manifest>

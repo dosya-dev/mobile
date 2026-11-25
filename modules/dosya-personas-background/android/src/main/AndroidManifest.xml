@@ -1,0 +1,24 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <!-- Personas background reading (spec 5.4). The foreground service only
+       holds the notification and keeps the process alive; the JS runtime does
+       the reading. mediaProcessing on Android 15+ (API 35), dataSync below. -->
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROCESSING" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+  <!-- Android 13+; also requested by backup. -->
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+  <!-- HeadlessJsTaskService holds a partial wake lock while the JS task runs. -->
+  <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+  <application>
+    <service
+      android:name=".PersonasReadService"
+      android:foregroundServiceType="mediaProcessing|dataSync"
+      android:exported="false" />
+    <service
+      android:name=".PersonasHeadlessService"
+      android:exported="false" />
+  </application>
+
+</manifest>

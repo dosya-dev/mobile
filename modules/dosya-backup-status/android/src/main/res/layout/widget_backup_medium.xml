@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+  <ImageView android:id="@+id/card"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:scaleType="fitXY"
+      android:contentDescription="@null"
+      android:src="@drawable/widget_card" />
+
+  <LinearLayout android:id="@+id/content"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:orientation="vertical"
+      android:padding="14dp"
+      android:visibility="gone">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+      <TextView android:id="@+id/header"
+          android:layout_width="0dp"
+          android:layout_weight="1"
+          android:layout_height="wrap_content"
+          android:textSize="10sp"
+          android:textStyle="bold"
+          android:maxLines="1"
+          android:ellipsize="end"
+          android:text="dosya.dev" />
+      <TextView android:id="@+id/pill"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textSize="10sp"
+          android:textStyle="bold"
+          android:text="Protected" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:layout_marginTop="6dp"
+        android:gravity="center_vertical">
+
+      <FrameLayout
+          android:layout_width="72dp"
+          android:layout_height="72dp">
+        <ImageView android:id="@+id/ring"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:contentDescription="@null" />
+        <LinearLayout
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:orientation="vertical"
+            android:gravity="center">
+          <TextView android:id="@+id/ring_pct"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:textSize="15sp"
+              android:textStyle="bold"
+              android:maxLines="1"
+              android:ellipsize="end"
+              android:text="42%" />
+          <TextView android:id="@+id/ring_sub"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:textSize="7sp"
+              android:textStyle="bold"
+              android:maxLines="1"
+              android:ellipsize="end"
+              android:text="used" />
+        </LinearLayout>
+      </FrameLayout>
+
+      <LinearLayout
+          android:layout_width="0dp"
+          android:layout_weight="1"
+          android:layout_height="wrap_content"
+          android:orientation="vertical"
+          android:layout_marginStart="14dp">
+
+        <LinearLayout android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+          <LinearLayout android:layout_width="0dp" android:layout_weight="1"
+              android:layout_height="wrap_content" android:orientation="vertical">
+            <TextView android:id="@+id/fact1_label" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:textSize="8sp" android:textStyle="bold"
+                android:maxLines="1" android:ellipsize="end" android:text="Free" />
+            <TextView android:id="@+id/fact1_value" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:textSize="12sp" android:textStyle="bold"
+                android:maxLines="1" android:ellipsize="end" />
+          </LinearLayout>
+          <LinearLayout android:layout_width="0dp" android:layout_weight="1"
+              android:layout_height="wrap_content" android:orientation="vertical">
+            <TextView android:id="@+id/fact2_label" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:textSize="8sp" android:textStyle="bold"
+                android:maxLines="1" android:ellipsize="end" android:text="Used" />
+            <TextView android:id="@+id/fact2_value" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:textSize="12sp" android:textStyle="bold"
+                android:maxLines="1" android:ellipsize="end" />
+          </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="6dp">
+          <LinearLayout android:layout_width="0dp" android:layout_weight="1"
+              android:layout_height="wrap_content" android:orientation="vertical">
+            <TextView android:id="@+id/fact3_label" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:textSize="8sp" android:textStyle="bold"
+                android:maxLines="1" android:ellipsize="end" android:text="Last backup" />
+            <TextView android:id="@+id/fact3_value" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:textSize="12sp" android:textStyle="bold"
+                android:maxLines="1" android:ellipsize="end" />
+          </LinearLayout>
+          <LinearLayout android:layout_width="0dp" android:layout_weight="1"
+              android:layout_height="wrap_content" android:orientation="vertical">
+            <TextView android:id="@+id/fact4_label" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:textSize="8sp" android:textStyle="bold"
+                android:maxLines="1" android:ellipsize="end" android:text="Last speed" />
+            <TextView android:id="@+id/fact4_value" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:textSize="12sp" android:textStyle="bold"
+                android:maxLines="1" android:ellipsize="end" />
+          </LinearLayout>
+        </LinearLayout>
+      </LinearLayout>
+    </LinearLayout>
+  </LinearLayout>
+
+  <TextView android:id="@+id/placeholder"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:gravity="center"
+      android:padding="14dp"
+      android:textSize="12sp"
+      android:textColor="#09131a"
+      android:visibility="visible"
+      android:text="@string/widget_empty" />
+</FrameLayout>

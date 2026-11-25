@@ -1,0 +1,19 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'dev.dosya.mediaextras'
+version = '1.0.0'
+
+android {
+  namespace "dev.dosya.mediaextras"
+  defaultConfig {
+    versionCode 1
+    versionName '1.0.0'
+  }
+}
+
+// No extra dependencies: this streams bytes through the framework
+// ContentResolver / File APIs only. expo-modules-core is already on the
+// compile classpath through the expo-module-gradle-plugin.

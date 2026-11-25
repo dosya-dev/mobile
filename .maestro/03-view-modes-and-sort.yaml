@@ -1,0 +1,31 @@
+# Grid/list toggle and the sort sheet: apply Name A-Z, restore Newest.
+# The action icons are pinned right of the scrolling chips row - always visible.
+appId: dev.dosya
+---
+- launchApp
+- retry:
+    maxRetries: 3
+    commands:
+      - openLink: dosya://
+      - extendedWaitUntil: { visible: "All", timeout: 20000 }
+- runFlow:
+    when:
+      notVisible: "${E2E_WS}"
+    commands:
+      - tapOn: "Owner"
+      - extendedWaitUntil: { visible: "Create workspace", timeout: 10000 }
+      - scrollUntilVisible: { element: "${E2E_WS}", direction: DOWN, timeout: 10000 }
+      - tapOn: "${E2E_WS}"
+      - extendedWaitUntil: { visible: "All", timeout: 25000 }
+- tapOn: "Grid view"
+- extendedWaitUntil: { visible: "TEST-24", timeout: 15000 }
+- tapOn: "Sort"
+- extendedWaitUntil: { visible: "Name A-Z", timeout: 10000 }
+- tapOn: "Name A-Z"
+- extendedWaitUntil: { visible: "TEST-24", timeout: 15000 }
+- tapOn: "Sort"
+- extendedWaitUntil: { visible: "Newest", timeout: 10000 }
+- tapOn: "Newest"
+- extendedWaitUntil: { visible: "TEST-24", timeout: 15000 }
+- tapOn: "List view"
+- extendedWaitUntil: { visible: "TEST-24", timeout: 15000 }

@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <!-- Deliberately empty. This module is one AsyncFunction with no permissions,
+       services, or components of its own. -->
+
+</manifest>

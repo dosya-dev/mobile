@@ -1,0 +1,22 @@
+# Workspace settings screen renders (read-only: nothing is saved).
+appId: dev.dosya
+---
+- launchApp
+- retry:
+    maxRetries: 3
+    commands:
+      - openLink: dosya://
+      - extendedWaitUntil: { visible: "All", timeout: 20000 }
+- runFlow:
+    when:
+      notVisible: "${E2E_WS}"
+    commands:
+      - tapOn: "Owner"
+      - extendedWaitUntil: { visible: "Create workspace", timeout: 10000 }
+      - scrollUntilVisible: { element: "${E2E_WS}", direction: DOWN, timeout: 10000 }
+      - tapOn: "${E2E_WS}"
+      - extendedWaitUntil: { visible: "All", timeout: 25000 }
+- openLink: dosya://workspace-settings
+- extendedWaitUntil: { visible: "Save", timeout: 20000 }
+- openLink: dosya://
+- extendedWaitUntil: { visible: "All", timeout: 15000 }

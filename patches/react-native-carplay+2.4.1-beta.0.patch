@@ -1,0 +1,1088 @@
+diff --git a/node_modules/react-native-carplay/android/src/main/java/org/birkir/carplay/CarPlaySession.kt b/node_modules/react-native-carplay/android/src/main/java/org/birkir/carplay/CarPlaySession.kt
+index 2235853..f207091 100644
+--- a/node_modules/react-native-carplay/android/src/main/java/org/birkir/carplay/CarPlaySession.kt
++++ b/node_modules/react-native-carplay/android/src/main/java/org/birkir/carplay/CarPlaySession.kt
+@@ -8,9 +8,7 @@ import android.content.IntentFilter
+ import android.content.res.Configuration
+ import android.os.Bundle
+ import android.util.Log
+-import androidx.car.app.CarContext.SCREEN_SERVICE
+ import androidx.car.app.Screen
+-import androidx.car.app.ScreenManager
+ import androidx.car.app.Session
+ import androidx.lifecycle.DefaultLifecycleObserver
+ import androidx.lifecycle.LifecycleOwner
+@@ -19,46 +17,59 @@ import com.facebook.react.bridge.Arguments
+ import com.facebook.react.bridge.ReactContext
+ import com.facebook.react.bridge.WritableNativeMap
+ import com.facebook.react.modules.appregistry.AppRegistry
+-import com.facebook.react.modules.core.TimingModule
+-import com.facebook.react.modules.debug.DevSettingsModule
+ import org.birkir.carplay.screens.CarScreen
+ 
++class CarPlaySession(
++  private val reactInstanceManager: ReactInstanceManager
++) : Session(), DefaultLifecycleObserver {
+ 
+-class CarPlaySession(private val reactInstanceManager: ReactInstanceManager) : Session(), DefaultLifecycleObserver {
+   private lateinit var screen: CarScreen
+ 
+   @SuppressLint("UnspecifiedRegisterReceiverFlag")
+   override fun onCreateScreen(intent: Intent): Screen {
+-    Log.d(TAG, "On create screen " + intent.action + " - " + intent.dataString)
+-    val lifecycle = lifecycle
++    Log.d(
++      TAG,
++      "On create screen ${intent.action} - ${intent.dataString}"
++    )
++
+     lifecycle.addObserver(this)
++
+     screen = CarScreen(carContext)
+     screen.marker = "root"
+ 
+-    // Handle reload events
+-    carContext.registerReceiver(object : BroadcastReceiver() {
+-      override fun onReceive(context: Context, intent: Intent) {
+-        if ("org.birkir.carplay.APP_RELOAD" == intent.action) {
+-          invokeStartTask(reactInstanceManager.currentReactContext!!);
++    carContext.registerReceiver(
++      object : BroadcastReceiver() {
++        override fun onReceive(context: Context, intent: Intent) {
++          if (intent.action == "org.birkir.carplay.APP_RELOAD") {
++            reactInstanceManager.currentReactContext?.let { reactContext ->
++              invokeStartTask(reactContext)
++            }
++          }
+         }
+-      }
+-    }, IntentFilter("org.birkir.carplay.APP_RELOAD"))
++      },
++      IntentFilter("org.birkir.carplay.APP_RELOAD")
++    )
+ 
+-    // Run JS
+     runJsApplication()
++
+     return screen
+   }
+ 
+   private fun runJsApplication() {
+     val reactContext = reactInstanceManager.currentReactContext
++
+     if (reactContext == null) {
+       reactInstanceManager.addReactInstanceEventListener(
+         object : ReactInstanceManager.ReactInstanceEventListener {
+-          override fun onReactContextInitialized(reactContext: ReactContext) {
++          override fun onReactContextInitialized(
++            reactContext: ReactContext
++          ) {
+             invokeStartTask(reactContext)
+             reactInstanceManager.removeReactInstanceEventListener(this)
+           }
+-        })
++        }
++      )
++
+       reactInstanceManager.createReactContextInBackground()
+     } else {
+       invokeStartTask(reactContext)
+@@ -70,46 +81,58 @@ class CarPlaySession(private val reactInstanceManager: ReactInstanceManager) : S
+       val catalystInstance = reactContext.catalystInstance
+       val jsAppModuleName = "AndroidAuto"
+       val appParams = WritableNativeMap()
++
+       appParams.putDouble("rootTag", 1.0)
+-      val appProperties = Bundle.EMPTY
+-      if (appProperties != null) {
+-        appParams.putMap("initialProps", Arguments.fromBundle(appProperties))
+-      }
+ 
+-      catalystInstance.getJSModule(AppRegistry::class.java)
+-        .runApplication(jsAppModuleName, appParams)
++      val appProperties = Bundle.EMPTY
+ 
+-      val timingModule = reactContext.getNativeModule(
+-        TimingModule::class.java
++      appParams.putMap(
++        "initialProps",
++        Arguments.fromBundle(appProperties)
+       )
++
++      catalystInstance
++        .getJSModule(AppRegistry::class.java)
++        ?.runApplication(
++          jsAppModuleName,
++          appParams
++        )
++
+       val carModule = reactInstanceManager
+-        .currentReactContext?.getNativeModule(CarPlayModule::class.java)
+-      carModule!!.setCarContext(carContext, screen)
+-      timingModule!!.onHostResume()
++        .currentReactContext
++        ?.getNativeModule(CarPlayModule::class.java)
+ 
++      carModule?.setCarContext(
++        carContext,
++        screen
++      )
+     } catch (e: Exception) {
+-      e.printStackTrace()
++      Log.e(
++        TAG,
++        "Failed to start Android Auto React application",
++        e
++      )
+     }
+   }
+ 
+   override fun onDestroy(owner: LifecycleOwner) {
+     Log.i(TAG, "onDestroy")
+-    val context = carContext
+-    // stop services here, if any
+   }
+ 
+   override fun onNewIntent(intent: Intent) {
+-    // handle intents
+     Log.d(TAG, "CarPlaySession.onNewIntent")
+   }
+ 
+-  override fun onCarConfigurationChanged(configuration: Configuration) {
+-    // we should report this over the bridge
+-    Log.d(TAG, "CarPlaySession.onCarConfigurationChanged")
++  override fun onCarConfigurationChanged(
++    configuration: Configuration
++  ) {
++    Log.d(
++      TAG,
++      "CarPlaySession.onCarConfigurationChanged"
++    )
+   }
+ 
+   companion object {
+     const val TAG = "CarPlaySession"
+   }
+ }
+-
+diff --git a/node_modules/react-native-carplay/android/src/main/java/org/birkir/carplay/parser/RCTListTemplate.kt b/node_modules/react-native-carplay/android/src/main/java/org/birkir/carplay/parser/RCTListTemplate.kt
+index f6f441a..c814e1b 100644
+--- a/node_modules/react-native-carplay/android/src/main/java/org/birkir/carplay/parser/RCTListTemplate.kt
++++ b/node_modules/react-native-carplay/android/src/main/java/org/birkir/carplay/parser/RCTListTemplate.kt
+@@ -13,7 +13,9 @@ class RCTListTemplate(
+ 
+   override fun parse(props: ReadableMap): ListTemplate {
+     return ListTemplate.Builder().apply {
+-      props.getString("title")?.let { setTitle(it) }
++      props.getString("title")?.let {
++        setTitle(it)
++      }
+ 
+       // Actions
+       props.getArray("actions")?.let {
+@@ -33,13 +35,16 @@ class RCTListTemplate(
+       setLoading(props.isLoading())
+ 
+       // Sections
+-      props.getArray("sections")?.let {
+-        for (i in 0 until it.size()) {
+-          val section = it.getMap(i)
++      props.getArray("sections")?.let { sections ->
++        for (i in 0 until sections.size()) {
++          val section = sections.getMap(i) ?: continue
++
+           val header = section.getString("header")
++          val items = section.getArray("items") ?: continue
++
+           addSectionedList(
+             SectionedItemList.create(
+-              parseItemList(section.getArray("items")),
++              parseItemList(items),
+               header ?: "Missing title"
+             )
+           )
+@@ -53,11 +58,9 @@ class RCTListTemplate(
+           parseItemList(it)
+         )
+       }
+-
+     }.build()
+   }
+ 
+-
+   companion object {
+     const val TAG = "RCTListTemplate"
+   }
+diff --git a/node_modules/react-native-carplay/android/src/main/java/org/birkir/carplay/parser/RCTTabTemplate.kt b/node_modules/react-native-carplay/android/src/main/java/org/birkir/carplay/parser/RCTTabTemplate.kt
+index 11d8261..41ed690 100644
+--- a/node_modules/react-native-carplay/android/src/main/java/org/birkir/carplay/parser/RCTTabTemplate.kt
++++ b/node_modules/react-native-carplay/android/src/main/java/org/birkir/carplay/parser/RCTTabTemplate.kt
+@@ -12,41 +12,80 @@ class RCTTabTemplate(
+   context: CarContext,
+   carScreenContext: CarScreenContext
+ ) : RCTTemplate(context, carScreenContext) {
++
+   override fun parse(props: ReadableMap): TabTemplate {
+-    return TabTemplate.Builder(object : TabCallback {
+-      override fun onTabSelected(tabContentId: String) {
+-        eventEmitter.didSelectTemplate(tabContentId)
++    return TabTemplate.Builder(
++      object : TabCallback {
++        override fun onTabSelected(tabContentId: String) {
++          eventEmitter.didSelectTemplate(tabContentId)
++        }
+       }
+-    }).apply {
++    ).apply {
+       setLoading(props.isLoading())
+-      props.getArray("templates")?.let {
+-        for (i in 0 until it.size()) {
+-          addTab(parseTab(it.getMap(i)))
++
++      props.getArray("templates")?.let { templates ->
++        for (i in 0 until templates.size()) {
++          val tabProps = templates.getMap(i) ?: continue
++          addTab(
++            parseTab(tabProps)
++          )
+         }
++
+         // Apply and select first tab
+-        it.getMap(0).getString("id")?.let { it1 ->
+-          setTabContents(parseTabContents(it1))
+-          setActiveTabContentId(it1)
++        if (templates.size() > 0) {
++          templates.getMap(0)
++            ?.getString("id")
++            ?.let { firstTabId ->
++              setTabContents(
++                parseTabContents(firstTabId)
++              )
++              setActiveTabContentId(firstTabId)
++            }
+         }
+       }
+-      props.getMap("headerAction")?.let { setHeaderAction(parseAction(it)) }
++
++      props.getMap("headerAction")?.let {
++        setHeaderAction(
++          parseAction(it)
++        )
++      }
+     }.build()
+   }
+ 
+   private fun parseTab(props: ReadableMap): Tab {
+     return Tab.Builder().apply {
+-      props.getString("id")?.let { setContentId(it) }
+-      props.getString("title")?.let { setTitle(it) }
+-      props.getMap("icon")?.let { setIcon(parseCarIcon(it)) }
++      props.getString("id")?.let {
++        setContentId(it)
++      }
++
++      props.getString("title")?.let {
++        setTitle(it)
++      }
++
++      props.getMap("icon")?.let {
++        setIcon(
++          parseCarIcon(it)
++        )
++      }
+     }.build()
+   }
+ 
+   private fun parseTabContents(templateId: String): TabContents {
+-    val screen = carScreenContext.screens[templateId]!!
+-    return TabContents.Builder(screen.template!!).build()
++    val screen = carScreenContext.screens[templateId]
++      ?: throw IllegalStateException(
++        "No screen found for tab template ID: $templateId"
++      )
++
++    val template = screen.template
++      ?: throw IllegalStateException(
++        "No template found for tab template ID: $templateId"
++      )
++
++    return TabContents.Builder(template).build()
+   }
+ 
+   companion object {
+     const val TAG = "RCTTabTemplate"
+   }
+ }
++
+diff --git a/node_modules/react-native-carplay/android/src/main/java/org/birkir/carplay/parser/RCTTemplate.kt b/node_modules/react-native-carplay/android/src/main/java/org/birkir/carplay/parser/RCTTemplate.kt
+index 01dbabd..7515d1c 100644
+--- a/node_modules/react-native-carplay/android/src/main/java/org/birkir/carplay/parser/RCTTemplate.kt
++++ b/node_modules/react-native-carplay/android/src/main/java/org/birkir/carplay/parser/RCTTemplate.kt
+@@ -1,8 +1,5 @@
+ package org.birkir.carplay.parser
+ 
+-// import androidx.car.app.model.Template
+-
+-import android.graphics.Bitmap
+ import android.text.Spannable
+ import android.text.SpannableString
+ import android.util.Log
+@@ -37,11 +34,9 @@ import androidx.car.app.navigation.model.Step
+ import androidx.car.app.navigation.model.TravelEstimate
+ import androidx.core.graphics.drawable.IconCompat
+ import com.facebook.common.references.CloseableReference
+-import com.facebook.datasource.DataSource
+ import com.facebook.datasource.DataSources
+ import com.facebook.drawee.backends.pipeline.Fresco
+ import com.facebook.imagepipeline.image.CloseableBitmap
+-import com.facebook.imagepipeline.image.CloseableImage
+ import com.facebook.imagepipeline.request.ImageRequestBuilder
+ import com.facebook.react.bridge.ReadableArray
+ import com.facebook.react.bridge.ReadableMap
+@@ -50,7 +45,6 @@ import org.birkir.carplay.screens.CarScreenContext
+ import org.birkir.carplay.utils.EventEmitter
+ import java.util.TimeZone
+ 
+-
+ /**
+  * Base class for parsing the template based on the props passed from ReactNative
+  *
+@@ -68,22 +62,32 @@ abstract class RCTTemplate(
+     get() = carScreenContext.eventEmitter
+ 
+   fun parseCarIcon(map: ReadableMap): CarIcon {
+-    val source = ImageSource(context, map.getString("uri"))
+-    val imageRequest = ImageRequestBuilder.newBuilderWithSource(source.uri).build()
+-    val dataSource = Fresco.getImagePipeline().fetchDecodedImage(imageRequest, context)
+-    val result = DataSources.waitForFinalResult(dataSource) as CloseableReference<CloseableBitmap>
++    val uri = map.getString("uri")
++      ?: throw IllegalArgumentException("Car icon uri is required")
++
++    val source = ImageSource(context, uri)
++    val imageRequest = ImageRequestBuilder
++      .newBuilderWithSource(source.uri)
++      .build()
++
++    val dataSource = Fresco
++      .getImagePipeline()
++      .fetchDecodedImage(imageRequest, context)
++
++    val result =
++      DataSources.waitForFinalResult(dataSource) as CloseableReference<CloseableBitmap>
++
+     val bitmap = result.get().underlyingBitmap
+ 
+     CloseableReference.closeSafely(result)
+     dataSource.close()
+ 
+-    return CarIcon.Builder(IconCompat.createWithBitmap(bitmap)).build()
++    return CarIcon.Builder(
++      IconCompat.createWithBitmap(bitmap)
++    ).build()
+   }
+ 
+   fun parseColor(colorName: String?): CarColor {
+-    // @todo implement CarColor.createCustom(light: 0x00, dark: 0x00)
+-    // maybe use react native tooling for this
+-
+     return when (colorName) {
+       "blue" -> CarColor.BLUE
+       "green" -> CarColor.GREEN
+@@ -98,6 +102,7 @@ abstract class RCTTemplate(
+ 
+   fun parseAction(map: ReadableMap?): Action {
+     val type = map?.getString("type")
++
+     if (type == "appIcon") {
+       return Action.APP_ICON
+     } else if (type == "back") {
+@@ -105,44 +110,56 @@ abstract class RCTTemplate(
+     } else if (type == "pan") {
+       return Action.PAN
+     }
++
+     val id = map?.getString("id")
+     val builder = Action.Builder()
++
+     if (map != null) {
+       map.getString("title")?.let {
+         builder.setTitle(it)
+       }
++
+       map.getMap("icon")?.let {
+         builder.setIcon(parseCarIcon(it))
+       }
++
+       map.getString("visibility")?.let {
+         if (it == "primary") {
+           builder.setFlags(FLAG_PRIMARY)
+         }
++
+         if (it == "persistent") {
+           builder.setFlags(FLAG_IS_PERSISTENT)
+         }
+       }
++
+       try {
+-        builder.setBackgroundColor(parseColor(map.getString("backgroundColor")))
++        builder.setBackgroundColor(
++          parseColor(map.getString("backgroundColor"))
++        )
+       } catch (e: Exception) {
+-        e.printStackTrace()
++        Log.w(TAG, "parseAction: failed to set background color", e)
+       }
++
+       builder.setOnClickListener {
+         if (id != null) {
+           eventEmitter.buttonPressed(id)
+         }
+       }
+     }
++
+     return builder.build()
+   }
+ 
+   protected fun parseActionStrip(actions: ReadableArray): ActionStrip {
+     val builder = ActionStrip.Builder()
++
+     for (i in 0 until actions.size()) {
+-      val actionMap = actions.getMap(i)
++      val actionMap = actions.getMap(i) ?: continue
+       val action = parseAction(actionMap)
+       builder.addAction(action)
+     }
++
+     return builder.build()
+   }
+ 
+@@ -151,23 +168,51 @@ abstract class RCTTemplate(
+     type: String = "row"
+   ): ItemList {
+     return ItemList.Builder().apply {
+-      for (i in 0 until items!!.size()) {
++      if (items == null) {
++        return@apply
++      }
++
++      for (i in 0 until items.size()) {
++        val item = items.getMap(i) ?: continue
++
+         if (type == "row") {
+-          addItem(parseRowItem(items.getMap(i), i))
++          addItem(
++            parseRowItem(item, i)
++          )
+         } else if (type == "grid") {
+-          addItem(parseGridItem(items.getMap(i), i))
++          addItem(
++            parseGridItem(item, i)
++          )
+         }
+       }
+     }.build()
+   }
+ 
+-  protected fun parseRowItem(item: ReadableMap, index: Int): Row {
++  protected fun parseRowItem(
++    item: ReadableMap,
++    index: Int
++  ): Row {
+     val id = item.getString("id") ?: index.toString()
++
+     return Row.Builder().apply {
+-      item.getString("text")?.let { setTitle(it) }
+-      item.getString("detailText")?.let { addText(it) }
+-      item.getMap("image")?.let { setImage(parseCarIcon(it)) }
+-      if (item.hasKey("browsable") && item.getBoolean("browsable")) {
++      item.getString("text")?.let {
++        setTitle(it)
++      }
++
++      item.getString("detailText")?.let {
++        addText(it)
++      }
++
++      item.getMap("image")?.let {
++        setImage(
++          parseCarIcon(it)
++        )
++      }
++
++      if (
++        item.hasKey("browsable") &&
++        item.getBoolean("browsable")
++      ) {
+         setOnClickListener {
+           eventEmitter.didSelectListItem(
+             id,
+@@ -178,27 +223,50 @@ abstract class RCTTemplate(
+     }.build()
+   }
+ 
+-  protected fun parseGridItem(item: ReadableMap, index: Int): GridItem {
++  protected fun parseGridItem(
++    item: ReadableMap,
++    index: Int
++  ): GridItem {
+     val id = item.getString("id") ?: index.toString()
++
+     return GridItem.Builder().apply {
+       val titleVariants = item.getArray("titleVariants")
+-      val metadata = item.getMap("metadata");
++      val metadata = item.getMap("metadata")
+ 
+       if (titleVariants != null) {
+         if (titleVariants.size() > 0) {
+-          setTitle(parseCarText(
+-            titleVariants.getString(0),
+-            metadata
+-          ))
++          titleVariants.getString(0)?.let { title ->
++            setTitle(
++              parseCarText(
++                title,
++                metadata
++              )
++            )
++          }
+         }
++
+         if (titleVariants.size() > 1) {
+-          setText(titleVariants.getString(1))
++          titleVariants.getString(1)?.let { text ->
++            setText(text)
++          }
+         }
+       }
+-      item.getMap("image")?.let { setImage(parseCarIcon(it)) }
+-      setLoading(item.isLoading())
++
++      item.getMap("image")?.let {
++        setImage(
++          parseCarIcon(it)
++        )
++      }
++
++      setLoading(
++        item.isLoading()
++      )
++
+       setOnClickListener {
+-        eventEmitter.gridButtonPressed(id, index)
++        eventEmitter.gridButtonPressed(
++          id,
++          index
++        )
+       }
+     }.build()
+   }
+@@ -207,13 +275,21 @@ abstract class RCTTemplate(
+     val builder = Place.Builder(
+       CarLocation.create(
+         props.getDouble("latitude"),
+-        props.getDouble("longitude"),
++        props.getDouble("longitude")
+       )
+     )
+-    PlaceMarker.Builder().apply {
+-      setIcon(parseCarIcon(props.getMap("icon")!!), PlaceMarker.TYPE_IMAGE)
+-      builder.setMarker(this.build())
+ 
++    props.getMap("icon")?.let { icon ->
++      PlaceMarker.Builder().apply {
++        setIcon(
++          parseCarIcon(icon),
++          PlaceMarker.TYPE_IMAGE
++        )
++
++        builder.setMarker(
++          build()
++        )
++      }
+     }
+ 
+     return builder.build()
+@@ -221,64 +297,114 @@ abstract class RCTTemplate(
+ 
+   fun parseMetadata(props: ReadableMap?): Metadata? {
+     val type = props?.getString("type")
+-    if (props == null || type == null || type != "place") {
+-      Log.w(TAG, "parseMetaData: invalid type provided $type")
++
++    if (
++      props == null ||
++      type == null ||
++      type != "place"
++    ) {
++      Log.w(
++        TAG,
++        "parseMetadata: invalid type provided $type"
++      )
++
+       return null
+     }
+-    return Metadata.Builder().setPlace(parsePlace(props)).build()
++
++    return Metadata.Builder()
++      .setPlace(
++        parsePlace(props)
++      )
++      .build()
+   }
+ 
+-  fun parseCarText(title: String, props: ReadableMap?): CarText {
++  fun parseCarText(
++    title: String,
++    props: ReadableMap?
++  ): CarText {
+     val spanBuilder = SpannableString(title)
++
+     props?.let {
+       try {
+         val index = title.indexOf("%d")
++
+         if (index != -1) {
+           spanBuilder.setSpan(
+-            DistanceSpan.create(parseDistance(props)),
++            DistanceSpan.create(
++              parseDistance(it)
++            ),
+             index,
+             index + 2,
+-            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
++            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+           )
+         }
+-        it
+       } catch (e: Exception) {
+-        Log.w(TAG, "getCarText: failed to parse the CarText")
++        Log.w(
++          TAG,
++          "parseCarText: failed to parse CarText",
++          e
++        )
+       }
+     }
+-    return CarText.Builder(spanBuilder).build()
++
++    return CarText.Builder(
++      spanBuilder
++    ).build()
+   }
+ 
+-  protected fun buildRow(props: ReadableMap): Row {
++  protected fun buildRow(
++    props: ReadableMap
++  ): Row {
+     val builder = Row.Builder()
+-    builder.setTitle(
+-      parseCarText(
+-        props.getString("title")!!,
+-        props.getMap("metadata")
++
++    props.getString("title")?.let { title ->
++      builder.setTitle(
++        parseCarText(
++          title,
++          props.getMap("metadata")
++        )
+       )
+-    )
+-    props.getArray("texts")?.let {
+-      for (i in 0 until it.size()) {
+-        builder.addText(it.getString(i))
++    }
++
++    props.getArray("texts")?.let { texts ->
++      for (i in 0 until texts.size()) {
++        texts.getString(i)?.let { text ->
++          builder.addText(text)
++        }
+       }
+     }
++
+     props.getMap("image")?.let {
+-      builder.setImage(parseCarIcon(it))
++      builder.setImage(
++        parseCarIcon(it)
++      )
+     }
++
+     try {
+-      val onPress = props.getInt("onPress")
+-      builder.setBrowsable(true)
+-//      builder.setOnClickListener { invokeCallback(onPress) }
++      if (props.hasKey("onPress")) {
++        props.getInt("onPress")
++        builder.setBrowsable(true)
++      }
+     } catch (e: Exception) {
+-      Log.w(TAG, "buildRow: failed to set clickListener on the row")
++      Log.w(
++        TAG,
++        "buildRow: failed to set click listener on row",
++        e
++      )
+     }
+-    parseMetadata(props.getMap("metadata"))?.let {
++
++    parseMetadata(
++      props.getMap("metadata")
++    )?.let {
+       builder.setMetadata(it)
+     }
++
+     return builder.build()
+   }
+ 
+-  protected fun parseDistanceUnit(value: String?): Int {
++  protected fun parseDistanceUnit(
++    value: String?
++  ): Int {
+     return when (value) {
+       "meters" -> Distance.UNIT_METERS
+       "miles" -> Distance.UNIT_MILES
+@@ -289,127 +415,281 @@ abstract class RCTTemplate(
+     }
+   }
+ 
+-  protected fun parseDistance(map: ReadableMap): Distance {
+-    return Distance.create(map.getDouble("distance"), parseDistanceUnit(map.getString("distanceUnits")))
++  protected fun parseDistance(
++    map: ReadableMap
++  ): Distance {
++    return Distance.create(
++      map.getDouble("distance"),
++      parseDistanceUnit(
++        map.getString("distanceUnits")
++      )
++    )
+   }
+ 
+-  protected fun parsePane(item: ReadableMap): Pane {
++  protected fun parsePane(
++    item: ReadableMap
++  ): Pane {
+     return Pane.Builder().apply {
+-      setLoading(item.isLoading())
++      setLoading(
++        item.isLoading()
++      )
++
+       item.getMap("image")?.let {
+-        setImage(parseCarIcon(it))
++        setImage(
++          parseCarIcon(it)
++        )
+       }
+-      item.getArray("actions")?.let {
+-        for (i in 0 until it.size()) {
+-          addAction(parseAction(it.getMap(i)))
++
++      item.getArray("actions")?.let { actions ->
++        for (i in 0 until actions.size()) {
++          val action = actions.getMap(i) ?: continue
++
++          addAction(
++            parseAction(action)
++          )
+         }
+       }
+-      item.getArray("items")?.let {
+-        for (i in 0 until it.size()) {
+-          addRow(parseRowItem(it.getMap(i), i))
++
++      item.getArray("items")?.let { items ->
++        for (i in 0 until items.size()) {
++          val row = items.getMap(i) ?: continue
++
++          addRow(
++            parseRowItem(
++              row,
++              i
++            )
++          )
+         }
+       }
+     }.build()
+   }
+ 
+-  protected fun parseHeader(map: ReadableMap): Header {
++  protected fun parseHeader(
++    map: ReadableMap
++  ): Header {
+     return Header.Builder().apply {
+-      map.getString("title")?.let { setTitle(parseCarText(it, map)) }
+-      map.getMap("startAction")?.let { setStartHeaderAction(parseAction(it)) }
+-      map.getArray("endActions")?.let {
+-        for (i in 0 until it.size()) {
+-          addEndHeaderAction(parseAction(it.getMap(i)))
++      map.getString("title")?.let {
++        setTitle(
++          parseCarText(
++            it,
++            map
++          )
++        )
++      }
++
++      map.getMap("startAction")?.let {
++        setStartHeaderAction(
++          parseAction(it)
++        )
++      }
++
++      map.getArray("endActions")?.let { actions ->
++        for (i in 0 until actions.size()) {
++          val action = actions.getMap(i) ?: continue
++
++          addEndHeaderAction(
++            parseAction(action)
++          )
+         }
+       }
+     }.build()
+   }
+ 
+-  protected fun parseStep(map: ReadableMap): Step {
++  protected fun parseStep(
++    map: ReadableMap
++  ): Step {
+     return Step.Builder().apply {
+-      map.getMap("lane")?.let { addLane(parseLane(it)) }
+-      map.getString("cue")?.let { setCue(it) }
+-      map.getMap("lanesImage")?.let { setLanesImage(parseCarIcon(it)) }
+-      map.getMap("maneuver")?.let { setManeuver(parseManeuver(it)) }
+-      map.getString("road")?.let { setRoad(it) }
++      map.getMap("lane")?.let {
++        addLane(
++          parseLane(it)
++        )
++      }
++
++      map.getString("cue")?.let {
++        setCue(it)
++      }
++
++      map.getMap("lanesImage")?.let {
++        setLanesImage(
++          parseCarIcon(it)
++        )
++      }
++
++      map.getMap("maneuver")?.let {
++        setManeuver(
++          parseManeuver(it)
++        )
++      }
++
++      map.getString("road")?.let {
++        setRoad(it)
++      }
+     }.build()
+   }
+ 
+-  protected fun parseLane(map: ReadableMap): Lane {
+-    val laneBuilder = Lane.Builder()
++  protected fun parseLane(
++    map: ReadableMap
++  ): Lane {
+     val shape = map.getInt("shape")
+     val recommended = map.getBoolean("recommended")
+-    return laneBuilder.addDirection(LaneDirection.create(shape, recommended)).build()
++
++    return Lane.Builder()
++      .addDirection(
++        LaneDirection.create(
++          shape,
++          recommended
++        )
++      )
++      .build()
+   }
+ 
+-  protected fun parseManeuver(map: ReadableMap): Maneuver {
++  protected fun parseManeuver(
++    map: ReadableMap
++  ): Maneuver {
+     val type = map.getInt("type")
+     val builder = Maneuver.Builder(type)
+-    builder.setIcon(parseCarIcon(map.getMap("icon")!!))
+-    if (type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW_WITH_ANGLE
+-      || type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW_WITH_ANGLE
++
++    map.getMap("icon")?.let {
++      builder.setIcon(
++        parseCarIcon(it)
++      )
++    }
++
++    if (
++      type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW_WITH_ANGLE ||
++      type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW_WITH_ANGLE
+     ) {
+-      builder.setRoundaboutExitAngle(map.getInt("roundaboutExitAngle"))
++      builder.setRoundaboutExitAngle(
++        map.getInt("roundaboutExitAngle")
++      )
+     }
+ 
+-    if (type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW
+-      || type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW
+-      || type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW_WITH_ANGLE
+-      || type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW_WITH_ANGLE
++    if (
++      type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW ||
++      type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW ||
++      type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW_WITH_ANGLE ||
++      type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW_WITH_ANGLE
+     ) {
+-      builder.setRoundaboutExitNumber(map.getInt("roundaboutExitNumber"))
++      builder.setRoundaboutExitNumber(
++        map.getInt("roundaboutExitNumber")
++      )
+     }
+ 
+     return builder.build()
+   }
+ 
+-  protected fun parseMessageInfo(map: ReadableMap): MessageInfo {
+-    val builder = MessageInfo.Builder(map.getString("title")!!)
+-    map.getMap("icon")?.let { builder.setImage(parseCarIcon(it)) }
++  protected fun parseMessageInfo(
++    map: ReadableMap
++  ): MessageInfo {
++    val title = map.getString("title")
++      ?: throw IllegalArgumentException(
++        "MessageInfo title is required"
++      )
++
++    val builder = MessageInfo.Builder(title)
++
++    map.getMap("icon")?.let {
++      builder.setImage(
++        parseCarIcon(it)
++      )
++    }
++
+     return builder.build()
+   }
+ 
+-  protected fun parseTravelEstimate(map: ReadableMap): TravelEstimate {
+-    val dateTimeMap = map.getMap("destinationTime")!!
++  protected fun parseTravelEstimate(
++    map: ReadableMap
++  ): TravelEstimate {
++    val dateTimeMap = map.getMap("destinationTime")
++      ?: throw IllegalArgumentException(
++        "destinationTime is required"
++      )
++
++    val timezoneId = dateTimeMap.getString("id")
++      ?: TimeZone.getDefault().id
++
+     val destinationDateTime = DateTimeWithZone.create(
+-      dateTimeMap.getDouble("timeSinceEpochMillis").toLong(),
+-      TimeZone.getTimeZone(dateTimeMap.getString("id")),
++      dateTimeMap
++        .getDouble("timeSinceEpochMillis")
++        .toLong(),
++      TimeZone.getTimeZone(timezoneId)
+     )
++
+     val builder = TravelEstimate.Builder(
+       Distance.create(
+         map.getDouble("distanceRemaining"),
+-        parseDistanceUnit(map.getString("distanceUnits"))
++        parseDistanceUnit(
++          map.getString("distanceUnits")
++        )
+       ),
+-      destinationDateTime,
++      destinationDateTime
+     )
++
+     map.getString("distanceRemainingColor")?.let {
+-      builder.setRemainingDistanceColor(parseColor(it))
++      builder.setRemainingDistanceColor(
++        parseColor(it)
++      )
+     }
++
+     map.getString("timeRemainingColor")?.let {
+-      builder.setRemainingTimeColor(parseColor(it))
++      builder.setRemainingTimeColor(
++        parseColor(it)
++      )
+     }
+-    builder.setRemainingTimeSeconds(map.getDouble("timeRemaining").toLong())
++
++    builder.setRemainingTimeSeconds(
++      map.getDouble("timeRemaining").toLong()
++    )
++
+     return builder.build()
+   }
+ 
+-  protected fun parseRoutingInfo(map: ReadableMap): RoutingInfo {
++  protected fun parseRoutingInfo(
++    map: ReadableMap
++  ): RoutingInfo {
+     return RoutingInfo.Builder()
+       .apply {
+-        setLoading(map.isLoading())
+-        setCurrentStep(
+-          parseStep(map.getMap("step")!!),
+-          parseDistance(map)
++        setLoading(
++          map.isLoading()
+         )
+-        map.getMap("junctionImage")?.let { setJunctionImage(parseCarIcon(it)) }
+-        map.getMap("nextStep")?.let { setNextStep(parseStep(it)) }
+-      }.build()
++
++        map.getMap("step")?.let { step ->
++          setCurrentStep(
++            parseStep(step),
++            parseDistance(map)
++          )
++        }
++
++        map.getMap("junctionImage")?.let {
++          setJunctionImage(
++            parseCarIcon(it)
++          )
++        }
++
++        map.getMap("nextStep")?.let {
++          setNextStep(
++            parseStep(it)
++          )
++        }
++      }
++      .build()
+   }
+ 
+-  protected fun parseNavigationInfo(map: ReadableMap): NavigationTemplate.NavigationInfo {
+-    val type = map.getString("type")
+-    return if (type == "routingInfo") {
+-      parseRoutingInfo(map.getMap("info")!!)
++  protected fun parseNavigationInfo(
++    map: ReadableMap
++  ): NavigationTemplate.NavigationInfo {
++    val info = map.getMap("info")
++      ?: throw IllegalArgumentException(
++        "Navigation info is required"
++      )
++
++    return if (
++      map.getString("type") == "routingInfo"
++    ) {
++      parseRoutingInfo(info)
+     } else {
+-      parseMessageInfo(map.getMap("info")!!)
++      parseMessageInfo(info)
+     }
+   }
+ 
